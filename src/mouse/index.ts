@@ -5,11 +5,11 @@ import { KeyTouch0 } from '../touch/keys';
 import { KeyMouseLeft, KeyMouseMiddle, KeyMouseMove, KeyMouseRight, KeyMouseWheelDown, KeyMouseWheelUp } from './keys';
 
 // --- Options Interfaces ---
-export interface MouseOptions { preventDefaults?: boolean; mouseMoveStopTimeout?: number; }
+export interface MouseOptions { mouseMoveStopTimeout?: number; }
 
 /** Initializes mouse input handling. */
 export function initInputMouse(element: HTMLElement, state: InputsState, options: MouseOptions = {}) {
-    const { preventDefaults = true, mouseMoveStopTimeout = 200 } = options;
+    const { mouseMoveStopTimeout = 200 } = options;
     const MOUSE_BUTTON_MAP: readonly KeyId[] = [KeyMouseLeft, KeyMouseMiddle, KeyMouseRight];
     let mouseX = 0, mouseY = 0; // State variables for coordinates
     let lastMouseMoveTime = 0;
@@ -66,9 +66,9 @@ export function initInputMouse(element: HTMLElement, state: InputsState, options
         const keyId = e.deltaY < 0 ? KeyMouseWheelUp : KeyMouseWheelDown;
         updateCoords(e);
         addEvent(state, keyId, JustPressed, 1, mouseX, mouseY); addEvent(state, keyId, JustReleased, 0, mouseX, mouseY);
-        if (preventDefaults) e.preventDefault();
+        e.preventDefault();
     };
-    const handleContextMenu = (e: Event) => preventDefaults && e.preventDefault();
+    const handleContextMenu = (e: Event) => e.preventDefault();
 
     const handleBlur = () => {
         const keysToRelease: KeyId[] = [];

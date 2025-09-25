@@ -51,7 +51,7 @@ function updateVRState(state: InputsState, keyId: KeyId, value: number, normaliz
 }
 
 /** Detects if a key ID belongs to a VR key. @internal */
-function isVRKey(keyId: KeyId): boolean {
+export function isVRKey(keyId: KeyId): boolean {
     return keyId >= VR_BASE_ID && keyId < JOYSTICK_BASE_ID;
 }
 
@@ -82,7 +82,7 @@ function releaseDeviceKeys(state: InputsState, deviceIndex: number, prevState: {
 
     // Release buttons
     for (let j = 0; j < prevState.buttons.length; j++) {
-        if (prevState.buttons[j].pressed) {
+        if (prevState.buttons[j]?.pressed) {
             const keyId = (VR_BASE_ID + (deviceIndex * VR_ID_RANGE) + VR_BUTTON_OFFSET + j) as KeyId;
             if (state.keysPressed.has(keyId)) {
                 addEvent(state, keyId, JustReleased, 0, -1, -1);
@@ -92,7 +92,7 @@ function releaseDeviceKeys(state: InputsState, deviceIndex: number, prevState: {
     
     // Release axes
     for (let j = 0; j < prevState.axes.length; j++) {
-        const prev = prevState.axes[j];
+        const prev = prevState.axes[j]!;
         const baseAxisId = VR_BASE_ID + (deviceIndex * VR_ID_RANGE) + VR_AXIS_OFFSET + (j * 2);
         if (prev > vrAxisDeadzone) {
             const posKeyId = baseAxisId as KeyId;
@@ -211,10 +211,11 @@ export async function initInputVR(state: InputsState, options: VROptions = {}): 
             const prevState = previousControllerStates[hand];
             const btnCount = Math.min(gamepad.buttons.length, MAX_VR_BUTTONS);
             for (let j = 0; j < btnCount; j++) {
-                const isPressed = gamepad.buttons[j].pressed;
+                const gamepadButton = gamepad.buttons[j]!;
+                const isPressed = gamepadButton.pressed;
                 const wasPressed = prevState?.buttons[j]?.pressed ?? false;
                 const keyId = (VR_BASE_ID + (deviceIndex * VR_ID_RANGE) + VR_BUTTON_OFFSET + j) as KeyId;
-                const pressure = gamepad.buttons[j].value;
+                const pressure = gamepadButton.value;
 
                 if (isPressed && !wasPressed) {
                     addEvent(state, keyId, JustPressed, pressure, -1, -1);
@@ -230,7 +231,7 @@ export async function initInputVR(state: InputsState, options: VROptions = {}): 
 
             const axisCount = Math.min(gamepad.axes.length, MAX_VR_AXES);
             for (let j = 0; j < axisCount; j++) {
-                const current = gamepad.axes[j];
+                const current = gamepad.axes[j]!;
                 const prev = prevState?.axes[j] ?? 0;
                 const baseAxisId = VR_BASE_ID + (deviceIndex * VR_ID_RANGE) + VR_AXIS_OFFSET + (j * 2);
             
@@ -268,16 +269,24 @@ export async function initInputVR(state: InputsState, options: VROptions = {}): 
             }
 
             if (!previousControllerStates[hand]) previousControllerStates[hand] = { buttons: [], axes: [] };
-            const newState = previousControllerStates[hand];
-            for (let j = 0; j < btnCount; j++) { if (!newState.buttons[j]) newState.buttons[j] = { pressed: false, value: 0 }; newState.buttons[j].pressed = gamepad.buttons[j].pressed; newState.buttons[j].value = gamepad.buttons[j].value; }
-            for (let j = 0; j < axisCount; j++) newState.axes[j] = gamepad.axes[j];
+            const newState = previousControllerStates[hand]!;
+            for (let j = 0; j < btnCount; j++) { 
+                if (!newState.buttons[j]) newState.buttons[j] = { pressed: false, value: 0 }; 
+                const gamepadButton = gamepad.buttons[j]!;
+                const stateButton = newState.buttons[j]!;
+                stateButton.pressed = gamepadButton.pressed;
+                stateButton.value = gamepadButton.value;
+            }
+            for (let j = 0; j < axisCount; j++) {
+                newState.axes[j] = gamepad.axes[j]!;
+            }
         }
 
         // Check for disconnected controllers
         for (const hand in previousControllerStates) {
             if (!activeHands.has(hand as XRHandedness)) {
                 const deviceIndex = hand === 'left' ? VR_CONTROLLER_L_DEVICE_INDEX : VR_CONTROLLER_R_DEVICE_INDEX;
-                releaseDeviceKeys(state, deviceIndex, previousControllerStates[hand], vrAxisDeadzone);
+                releaseDeviceKeys(state, deviceIndex, previousControllerStates[hand]!, vrAxisDeadzone);
                 delete previousControllerStates[hand];
             }
         }

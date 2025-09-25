@@ -15,7 +15,7 @@ import {
     KeySensorRotationRateYaw_N, KeySensorRotationRateYaw_P,
     SENSOR_BASE_ID
 } from './keys';
-import type {} from './sensors.d.ts';
+import type {} from './sensors';
 
 // --- Options Interfaces ---
 export interface SensorOptions {
@@ -191,8 +191,8 @@ export function initInputSensor(state: InputsState, options: SensorOptions = {})
         try {
             const orient = new AbsoluteOrientationSensor(sensorOptions);
             const onReading = () => {
-                if (!orient.quaternion) return;
-                const [x, y, z, w] = orient.quaternion;
+                if (!orient.quaternion || orient.quaternion.length < 4) return;
+                const [x, y, z, w] = orient.quaternion as [number, number, number, number];
                 const radToDeg = 180 / Math.PI;
 
                 // The deviceorientation event uses an intrinsic Z-X'-Y'' Tait-Bryan angle sequence.

@@ -1,0 +1,10 @@
+export declare const VR_BASE_ID = 14000;
+export declare const VR_ID_RANGE = 1000;
+export declare const VR_POSE_OFFSET = 0;
+export declare const VR_BUTTON_OFFSET = 100;
+export declare const VR_AXIS_OFFSET = 200;
+export declare const VR_HEADSET_DEVICE_INDEX = 0;
+export declare const VR_CONTROLLER_L_DEVICE_INDEX = 1;
+export declare const VR_CONTROLLER_R_DEVICE_INDEX = 2;
+export declare const MAX_VR_BUTTONS = 10;
+export declare const MAX_VR_AXES = 4;

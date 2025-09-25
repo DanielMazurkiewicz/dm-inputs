@@ -5,12 +5,8 @@ import { KeyMouseLeft } from '../mouse/keys';
 import { KeyArrowDown, KeyArrowLeft, KeyS, KeySpace, KeyTab } from './keys';
 import { keyMap } from './key_map';
 
-// --- Options Interfaces ---
-export interface KeyboardOptions { preventDefaults?: boolean; }
-
 /** Initializes keyboard input handling. */
-export function initInputKeyboard(element: HTMLElement, state: InputsState, options: KeyboardOptions = {}) {
-    const { preventDefaults = true } = options;
+export function initInputKeyboard(element: HTMLElement, state: InputsState) {
     let mouseX = -1, mouseY = -1;
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -38,15 +34,13 @@ export function initInputKeyboard(element: HTMLElement, state: InputsState, opti
 
         addEvent(state, keyId, JustPressed, 1, mouseX, mouseY, char);
         
-        if (preventDefaults) {
-            // Prevent scrolling with arrow keys, space, etc.
-            if ((keyId >= KeyArrowLeft && keyId <= KeyArrowDown) || keyId === KeySpace || keyId === KeyTab) {
-                e.preventDefault();
-            }
-            // Prevent browser save dialog on Ctrl+S
-            if (e.ctrlKey && keyId === KeyS) {
-                e.preventDefault();
-            }
+        // Prevent scrolling with arrow keys, space, etc.
+        if ((keyId >= KeyArrowLeft && keyId <= KeyArrowDown) || keyId === KeySpace || keyId === KeyTab) {
+            e.preventDefault();
+        }
+        // Prevent browser save dialog on Ctrl+S
+        if (e.ctrlKey && keyId === KeyS) {
+            e.preventDefault();
         }
     };
 

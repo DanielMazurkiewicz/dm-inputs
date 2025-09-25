@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dm-inputs Test Page</title>
+    <style>
+        body { font-family: monospace; display: flex; gap: 20px; padding: 20px; background-color: #f0f0f0; }
+        #input-area { width: 500px; height: 500px; border: 2px solid black; background-color: white; user-select: none; touch-action: none; position: relative; }
+        #input-area:focus { outline: 2px solid blue; }
+        .state-container { flex-grow: 1; display: flex; flex-direction: column; gap: 20px; max-height: 90vh; }
+        .state-box { border: 1px solid #ccc; padding: 10px; background-color: #fff; flex-basis: 0; flex-grow: 1; overflow-y: auto; }
+        h1, h2 { margin-top: 0; }
+        ul { padding-left: 10px; margin: 0; list-style-type: none; }
+        li { white-space: pre; font-size: 12px; }
+        .buttons { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; margin-bottom: 10px; }
+        button { padding: 10px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>dm-inputs Test Page</h1>
+        <p>Click inside the black box to capture keyboard/mouse/touch inputs.</p>
+        <div id="input-area" tabindex="0"></div>
+        <div class="buttons">
+            <button id="sensor-btn">Request Sensor Permissions</button>
+            <button id="geo-btn">Start Geolocation</button>
+            <button id="vr-btn">Start VR</button>
+            <button id="clear-history-btn">Clear History</button>
+        </div>
+        <div id="combo-status"></div>
+    </div>
+    <div class="state-container">
+        <div class="state-box" id="pressed-keys">
+            <h2>Keys Pressed</h2>
+            <ul></ul>
+        </div>
+        <div class="state-box" id="pending-inputs">
+            <h2>Pending Inputs (this frame)</h2>
+            <ul></ul>
+        </div>
+        <div class="state-box" id="history-inputs">
+            <h2>Input History</h2>
+            <ul></ul>
+        </div>
+    </div>
+
+    <script type="module" src="./test.ts"></script>
+</body>
+</html>

@@ -24,14 +24,15 @@ export function initInputJoystick(state: InputsState, options: JoystickOptions =
                 if (previousState) {
                     // Gamepad was disconnected, release all its keys.
                     for (let j = 0; j < Math.min(previousState.buttons.length, MAX_JOYSTICK_BUTTONS); j++) {
-                        if (previousState.buttons[j].pressed) {
+                        if (previousState.buttons[j]?.pressed) {
                             const keyId = (JOYSTICK_BASE_ID + (i * JOYSTICK_ID_RANGE) + JOYSTICK_BUTTON_OFFSET + j) as KeyId;
                             addEvent(state, keyId, JustReleased, 0, -1, -1);
                         }
                     }
                     for (let j = 0; j < Math.min(previousState.axes.length, MAX_JOYSTICK_AXES); j++) {
-                        if (Math.abs(previousState.axes[j]) > joystickAxisDeadzone) {
-                            const wasPos = previousState.axes[j] > joystickAxisDeadzone;
+                        const axisValue = previousState.axes[j]!;
+                        if (Math.abs(axisValue) > joystickAxisDeadzone) {
+                            const wasPos = axisValue > joystickAxisDeadzone;
                             const keyId = (JOYSTICK_BASE_ID + (i * JOYSTICK_ID_RANGE) + JOYSTICK_AXIS_OFFSET + (j * 2) + (wasPos ? 0 : 1)) as KeyId;
                             addEvent(state, keyId, JustReleased, 0, -1, -1);
                         }
@@ -43,17 +44,18 @@ export function initInputJoystick(state: InputsState, options: JoystickOptions =
 
             const btnCount = Math.min(currentGamepad.buttons.length, MAX_JOYSTICK_BUTTONS);
             for (let j = 0; j < btnCount; j++) {
-                const isPressed = currentGamepad.buttons[j].pressed;
+                const currentButton = currentGamepad.buttons[j]!;
+                const isPressed = currentButton.pressed;
                 const wasPressed = previousState?.buttons[j]?.pressed ?? false;
                 const keyId = (JOYSTICK_BASE_ID + (i * JOYSTICK_ID_RANGE) + JOYSTICK_BUTTON_OFFSET + j) as KeyId;
                 
                 if (isPressed && !wasPressed) {
-                    const pressure = currentGamepad.buttons[j].value;
+                    const pressure = currentButton.value;
                     addEvent(state, keyId, JustPressed, pressure, -1, -1);
                 } else if (!isPressed && wasPressed) {
                     addEvent(state, keyId, JustReleased, 0, -1, -1);
                 } else if (isPressed) {
-                    const pressure = currentGamepad.buttons[j].value;
+                    const pressure = currentButton.value;
                     const event = state.keysPressed.get(keyId);
                     if (event && event.pressure !== pressure) {
                         addEvent(state, keyId, JustUpdated, pressure, -1, -1);
@@ -63,7 +65,7 @@ export function initInputJoystick(state: InputsState, options: JoystickOptions =
 
             const axisCount = Math.min(currentGamepad.axes.length, MAX_JOYSTICK_AXES);
             for (let j = 0; j < axisCount; j++) {
-                const current = currentGamepad.axes[j];
+                const current = currentGamepad.axes[j]!;
                 const prev = previousState?.axes[j] ?? 0;
 
                 // Positive axis
@@ -102,8 +104,16 @@ export function initInputJoystick(state: InputsState, options: JoystickOptions =
             // Save current state for next poll
             if (!previousGamepadStates[i]) previousGamepadStates[i] = { buttons: [], axes: [] };
             const newState = previousGamepadStates[i]!;
-            for (let j = 0; j < btnCount; j++) { if (!newState.buttons[j]) newState.buttons[j] = { pressed: false, value: 0 }; newState.buttons[j].pressed = currentGamepad.buttons[j].pressed; newState.buttons[j].value = currentGamepad.buttons[j].value; }
-            for (let j = 0; j < axisCount; j++) newState.axes[j] = currentGamepad.axes[j];
+            for (let j = 0; j < btnCount; j++) { 
+                if (!newState.buttons[j]) newState.buttons[j] = { pressed: false, value: 0 }; 
+                const currentButton = currentGamepad.buttons[j]!;
+                const stateButton = newState.buttons[j]!;
+                stateButton.pressed = currentButton.pressed;
+                stateButton.value = currentButton.value;
+            }
+            for (let j = 0; j < axisCount; j++) {
+                newState.axes[j] = currentGamepad.axes[j]!;
+            }
         }
         pollRequestId = requestAnimationFrame(pollGamepads);
     };

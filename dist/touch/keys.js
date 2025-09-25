@@ -1,0 +1,4 @@
+// -- Touch Inputs
+export const KeyTouch0 = 11000, KeyTouch1 = 11001, KeyTouch2 = 11002, KeyTouch3 = 11003, KeyTouch4 = 11004, KeyTouch5 = 11005, KeyTouch6 = 11006, KeyTouch7 = 11007, KeyTouch8 = 11008, KeyTouch9 = 11009;
+export const KeyTouchMove0 = 11500, KeyTouchMove1 = 11501, KeyTouchMove2 = 11502, KeyTouchMove3 = 11503, KeyTouchMove4 = 11504, KeyTouchMove5 = 11505, KeyTouchMove6 = 11506, KeyTouchMove7 = 11507, KeyTouchMove8 = 11508, KeyTouchMove9 = 11509;
+//# sourceMappingURL=keys.js.map

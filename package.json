@@ -1,12 +1,46 @@
 {
   "name": "dm-inputs",
-  "module": "src/index.ts",
-  "type": "module",
-  "private": true,
-  "devDependencies": {
-    "@types/bun": "latest"
+  "version": "0.1.0",
+  "description": "A comprehensive, high-performance, and type-safe input management library for browser-based applications and games.",
+  "author": "Daniel Mazurkiewicz",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DanielMazurkiewicz/dm-inputs.git"
   },
-  "peerDependencies": {
+  "keywords": [
+    "input",
+    "keyboard",
+    "mouse",
+    "touch",
+    "gamepad",
+    "joystick",
+    "vr",
+    "webxr",
+    "sensor",
+    "typescript",
+    "gamedev"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "bun --hot test/server.ts",
+    "build": "bun run clean && tsc --project tsconfig.build.json",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "bun-types": "latest",
     "typescript": "^5"
   }
 }

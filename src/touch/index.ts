@@ -5,11 +5,11 @@ import { SENSOR_BASE_ID } from '../sensor/keys';
 import { KeyTouch0, KeyTouchMove0 } from './keys';
 
 // --- Options Interfaces ---
-export interface TouchOptions { preventDefaults?: boolean; touchMoveStopTimeout?: number; }
+export interface TouchOptions { touchMoveStopTimeout?: number; }
 
 /** Initializes touch input handling. */
 export function initInputTouch(element: HTMLElement, state: InputsState, options: TouchOptions = {}) {
-    const { preventDefaults = true, touchMoveStopTimeout = 200 } = options;
+    const { touchMoveStopTimeout = 200 } = options;
     // OPTIMIZED: Use a stack for O(1) allocation/deallocation of touch indices.
     const availableTouchIndices = [9, 8, 7, 6, 5, 4, 3, 2, 1, 0];
     const touchIdentifierMap = new Map<number, number>(); // <touch.identifier, our 0-9 index>
@@ -24,10 +24,11 @@ export function initInputTouch(element: HTMLElement, state: InputsState, options
     };
 
     const handleTouchStart = (e: TouchEvent) => {
-        if (preventDefaults) e.preventDefault();
+        e.preventDefault();
         const touches = e.changedTouches;
         for (let i = 0, len = touches.length; i < len; i++) {
             const touch = touches[i];
+            if (!touch) continue;
             if (availableTouchIndices.length === 0) continue; // Max touches reached
             
             const touchIndex = availableTouchIndices.pop()!;
@@ -43,10 +44,11 @@ export function initInputTouch(element: HTMLElement, state: InputsState, options
     };
 
     const handleTouchEndOrCancel = (e: TouchEvent) => {
-        if (preventDefaults) e.preventDefault();
+        e.preventDefault();
         const touches = e.changedTouches;
         for (let i = 0, len = touches.length; i < len; i++) {
             const touch = touches[i];
+            if (!touch) continue;
             const touchIndex = touchIdentifierMap.get(touch.identifier);
             if (touchIndex === undefined) continue;
 
@@ -93,10 +95,11 @@ export function initInputTouch(element: HTMLElement, state: InputsState, options
     };
 
     const handleTouchMove = (e: TouchEvent) => {
-        if (preventDefaults) e.preventDefault();
+        e.preventDefault();
         const touches = e.changedTouches;
         for (let i = 0, len = touches.length; i < len; i++) {
             const touch = touches[i];
+            if (!touch) continue;
             const touchIndex = touchIdentifierMap.get(touch.identifier);
             if (touchIndex === undefined) continue;
 

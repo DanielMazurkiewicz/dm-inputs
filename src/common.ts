@@ -1,4 +1,4 @@
-import type { KeyId } from './keys.ts';
+import type { KeyId } from './keys';
 
 // --- Type Definitions ---
 export const JustReleased = 0;
@@ -133,7 +133,7 @@ export function wasCombinationJustPressed(state: InputsState, keys: readonly Key
     // First, find if any key in the combination was just pressed in this frame.
     for (let i = state.pendingInputsConsumed; i < state.pendingInputsLength; i++) {
         const event = state.pendingInputs[i];
-        if (event.state === JustPressed && keys.includes(event.keyId)) {
+        if (event && event.state === JustPressed && keys.includes(event.keyId)) {
             justPressedKeyFound = true;
             break;
         }
@@ -162,7 +162,7 @@ export function wasCombinationJustReleased(state: InputsState, keys: readonly Ke
     let releasedKeyInCombo: KeyId | undefined = undefined;
     for (let i = state.pendingInputsConsumed; i < state.pendingInputsLength; i++) {
         const event = state.pendingInputs[i];
-        if (event.state === JustReleased && keys.includes(event.keyId)) {
+        if (event && event.state === JustReleased && keys.includes(event.keyId)) {
             releasedKeyInCombo = event.keyId;
             break;
         }
@@ -177,13 +177,14 @@ export function wasCombinationJustReleased(state: InputsState, keys: readonly Ke
     const releasedThisFrame = new Set<KeyId>();
     for (let i = state.pendingInputsConsumed; i < state.pendingInputsLength; i++) {
         const event = state.pendingInputs[i];
-        if (event.state === JustReleased) {
+        if (event && event.state === JustReleased) {
             releasedThisFrame.add(event.keyId);
         }
     }
 
     for (let i = 0, len = keys.length; i < len; i++) {
         const key = keys[i];
+        if (key === undefined) continue;
         const isStillPressed = state.keysPressed.has(key);
         const wasJustReleased = releasedThisFrame.has(key);
         if (!isStillPressed && !wasJustReleased) {
