@@ -1,11 +1,16 @@
 import type { KeyId } from './keys.ts';
 
 // --- Type Definitions ---
+export const JustReleased = 0;
+export const JustPressed = 1;
+export const JustUpdated = 2;
+
+export type InputEventState = typeof JustPressed | typeof JustReleased | typeof JustUpdated;
+
 export interface InputEvent { 
     keyId: KeyId; 
+    state: InputEventState;
     char?: string; // utf8 char
-    isJustPressed: boolean; 
-    isJustReleased: boolean; 
     pressure: number; // 0 - 1. For sensors, this is the normalized value. For others, it's pressure or state (0 or 1).
     
     // Coordinates for mouse position, touch position. Position is always relative to element. Keyboard uses current mouse position.
@@ -23,30 +28,31 @@ export interface InputsState {
 
 // --- Internal Helper Functions ---
 /** @internal */
-export function addEvent(state: InputsState, keyId: KeyId, isJustPressed: boolean, isJustReleased: boolean, pressure: number, x: number, y: number, char?: string) {
+export function addEvent(state: InputsState, keyId: KeyId, eventState: InputEventState, pressure: number, x: number, y: number, char?: string) {
     // --- Step 1: Add the event to the pending queue ---
     let event: InputEvent
     if (state.pendingInputsLength >= state.pendingInputs.length) {
         // Grow buffer on demand if it's full. This handles input bursts gracefully.
-        event = { keyId, isJustPressed, isJustReleased, pressure, x, y, char }
+        event = { keyId, state: eventState, pressure, x, y, char }
         state.pendingInputs.push(event);
     } else {
         // Reuse existing event object from the pool for performance.
+        //@ts-ignore
         event = state.pendingInputs[state.pendingInputsLength];
-        event.keyId = keyId; event.isJustPressed = isJustPressed; event.isJustReleased = isJustReleased;
+        event.keyId = keyId; event.state = eventState;
         event.pressure = pressure; event.x = x; event.y = y; event.char = char;
     }
     state.pendingInputsLength++;
 
     // --- Step 2: Update the persistent keysPressed state map ---
-    if (isJustPressed) {
+    if (eventState === JustPressed) {
         // We must create a new object for the map, because the 'event' object from the pool will be mutated.
         // This new object represents the persistent state of the pressed key.
         const pressEvent: InputEvent = {...event}
         state.keysPressed.set(keyId, pressEvent);
-    } else if (isJustReleased) {
+    } else if (eventState === JustReleased) {
         state.keysPressed.delete(keyId);
-    } else {
+    } else { // JustUpdated
         // This is a "move" or "pressure change" event. Update the existing state in the map.
         const existingEvent = state.keysPressed.get(keyId);
         if (existingEvent) {
@@ -73,7 +79,7 @@ export function combineDestroyers(...destroyers: (() => void)[]): () => void {
 /** Creates a new shared state object for the input system. */
 export function createInputsState(maxEvents: number = 64): InputsState {
     return {
-        pendingInputs: Array.from({ length: maxEvents }, (): InputEvent => ({ keyId: 0 as KeyId, isJustPressed: false, isJustReleased: false, pressure: 0, x: -1, y: -1 })),
+        pendingInputs: Array.from({ length: maxEvents }, (): InputEvent => ({ keyId: 0 as KeyId, state: JustUpdated, pressure: 0, x: -1, y: -1 })),
         pendingInputsLength: 0,
         pendingInputsConsumed: 0,
         keysPressed: new Map<KeyId, InputEvent>(),
@@ -105,6 +111,7 @@ export function pendingInputsConsume(state: InputsState): InputEvent | undefined
 export function isCombinationPressed(state: InputsState, keys: readonly KeyId[]): boolean {
     if (keys.length === 0) return false;
     for (let i = 0, len = keys.length; i < len; i++) {
+        //@ts-ignore
         if (!state.keysPressed.has(keys[i])) {
             return false;
         }
@@ -126,7 +133,7 @@ export function wasCombinationJustPressed(state: InputsState, keys: readonly Key
     // First, find if any key in the combination was just pressed in this frame.
     for (let i = state.pendingInputsConsumed; i < state.pendingInputsLength; i++) {
         const event = state.pendingInputs[i];
-        if (event.isJustPressed && keys.includes(event.keyId)) {
+        if (event.state === JustPressed && keys.includes(event.keyId)) {
             justPressedKeyFound = true;
             break;
         }
@@ -155,7 +162,7 @@ export function wasCombinationJustReleased(state: InputsState, keys: readonly Ke
     let releasedKeyInCombo: KeyId | undefined = undefined;
     for (let i = state.pendingInputsConsumed; i < state.pendingInputsLength; i++) {
         const event = state.pendingInputs[i];
-        if (event.isJustReleased && keys.includes(event.keyId)) {
+        if (event.state === JustReleased && keys.includes(event.keyId)) {
             releasedKeyInCombo = event.keyId;
             break;
         }
@@ -170,7 +177,7 @@ export function wasCombinationJustReleased(state: InputsState, keys: readonly Ke
     const releasedThisFrame = new Set<KeyId>();
     for (let i = state.pendingInputsConsumed; i < state.pendingInputsLength; i++) {
         const event = state.pendingInputs[i];
-        if (event.isJustReleased) {
+        if (event.state === JustReleased) {
             releasedThisFrame.add(event.keyId);
         }
     }

@@ -1,5 +1,5 @@
 import type { InputEvent, InputsState } from '../common';
-import { addEvent } from '../common';
+import { addEvent, JustPressed, JustReleased, JustUpdated } from '../common';
 import { type KeyId } from '../keys';
 import { JOYSTICK_AXIS_OFFSET, JOYSTICK_BASE_ID, JOYSTICK_BUTTON_OFFSET, JOYSTICK_ID_RANGE, MAX_JOYSTICKS, MAX_JOYSTICK_AXES, MAX_JOYSTICK_BUTTONS } from './keys_consts';
 
@@ -26,14 +26,14 @@ export function initInputJoystick(state: InputsState, options: JoystickOptions =
                     for (let j = 0; j < Math.min(previousState.buttons.length, MAX_JOYSTICK_BUTTONS); j++) {
                         if (previousState.buttons[j].pressed) {
                             const keyId = (JOYSTICK_BASE_ID + (i * JOYSTICK_ID_RANGE) + JOYSTICK_BUTTON_OFFSET + j) as KeyId;
-                            addEvent(state, keyId, false, true, 0, -1, -1);
+                            addEvent(state, keyId, JustReleased, 0, -1, -1);
                         }
                     }
                     for (let j = 0; j < Math.min(previousState.axes.length, MAX_JOYSTICK_AXES); j++) {
                         if (Math.abs(previousState.axes[j]) > joystickAxisDeadzone) {
                             const wasPos = previousState.axes[j] > joystickAxisDeadzone;
                             const keyId = (JOYSTICK_BASE_ID + (i * JOYSTICK_ID_RANGE) + JOYSTICK_AXIS_OFFSET + (j * 2) + (wasPos ? 0 : 1)) as KeyId;
-                            addEvent(state, keyId, false, true, 0, -1, -1);
+                            addEvent(state, keyId, JustReleased, 0, -1, -1);
                         }
                     }
                     previousGamepadStates[i] = null;
@@ -49,14 +49,14 @@ export function initInputJoystick(state: InputsState, options: JoystickOptions =
                 
                 if (isPressed && !wasPressed) {
                     const pressure = currentGamepad.buttons[j].value;
-                    addEvent(state, keyId, true, false, pressure, -1, -1);
+                    addEvent(state, keyId, JustPressed, pressure, -1, -1);
                 } else if (!isPressed && wasPressed) {
-                    addEvent(state, keyId, false, true, 0, -1, -1);
+                    addEvent(state, keyId, JustReleased, 0, -1, -1);
                 } else if (isPressed) {
                     const pressure = currentGamepad.buttons[j].value;
                     const event = state.keysPressed.get(keyId);
                     if (event && event.pressure !== pressure) {
-                        addEvent(state, keyId, false, false, pressure, -1, -1);
+                        addEvent(state, keyId, JustUpdated, pressure, -1, -1);
                     }
                 }
             }
@@ -72,13 +72,13 @@ export function initInputJoystick(state: InputsState, options: JoystickOptions =
                 const posKeyId = (JOYSTICK_BASE_ID + (i * JOYSTICK_ID_RANGE) + JOYSTICK_AXIS_OFFSET + (j * 2)) as KeyId;
                 const pressurePos = Math.max(0, (current - joystickAxisDeadzone) / (1 - joystickAxisDeadzone));
                 if (isPos && !wasPos) {
-                    addEvent(state, posKeyId, true, false, pressurePos, -1, -1);
+                    addEvent(state, posKeyId, JustPressed, pressurePos, -1, -1);
                 } else if (!isPos && wasPos) {
-                    addEvent(state, posKeyId, false, true, 0, -1, -1);
+                    addEvent(state, posKeyId, JustReleased, 0, -1, -1);
                 } else if (isPos) {
                     const event = state.keysPressed.get(posKeyId);
                     if (event && event.pressure !== pressurePos) {
-                        addEvent(state, posKeyId, false, false, pressurePos, -1, -1);
+                        addEvent(state, posKeyId, JustUpdated, pressurePos, -1, -1);
                     }
                 }
 
@@ -88,13 +88,13 @@ export function initInputJoystick(state: InputsState, options: JoystickOptions =
                 const negKeyId = (JOYSTICK_BASE_ID + (i * JOYSTICK_ID_RANGE) + JOYSTICK_AXIS_OFFSET + (j * 2) + 1) as KeyId;
                 const pressureNeg = Math.max(0, (Math.abs(current) - joystickAxisDeadzone) / (1 - joystickAxisDeadzone));
                 if (isNeg && !wasNeg) {
-                    addEvent(state, negKeyId, true, false, pressureNeg, -1, -1);
+                    addEvent(state, negKeyId, JustPressed, pressureNeg, -1, -1);
                 } else if (!isNeg && wasNeg) {
-                    addEvent(state, negKeyId, false, true, 0, -1, -1);
+                    addEvent(state, negKeyId, JustReleased, 0, -1, -1);
                 } else if (isNeg) {
                     const event = state.keysPressed.get(negKeyId);
                     if (event && event.pressure !== pressureNeg) {
-                        addEvent(state, negKeyId, false, false, pressureNeg, -1, -1);
+                        addEvent(state, negKeyId, JustUpdated, pressureNeg, -1, -1);
                     }
                 }
             }

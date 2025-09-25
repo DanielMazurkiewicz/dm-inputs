@@ -1,5 +1,5 @@
 import type { InputEvent, InputsState } from '../common';
-import { addEvent } from '../common';
+import { addEvent, JustPressed, JustReleased, JustUpdated } from '../common';
 import { type KeyId } from '../keys';
 import { VR_BASE_ID } from '../vr/keys_consts';
 import { GEOLOCATION_BASE_ID } from './keys_consts';
@@ -26,12 +26,12 @@ function updateGeolocationState(state: InputsState, coords: GeolocationCoordinat
 
     if (!state.keysPressed.has(keyId)) {
         // First time seeing this sensor, treat as "just pressed"
-        addEvent(state, keyId, true, false, pressure, x, y);
+        addEvent(state, keyId, JustPressed, pressure, x, y);
     } else {
         // Geolocation value updated, treat as a "move" event
         const event = state.keysPressed.get(keyId)!;
         if (event.x !== x || event.y !== y || event.pressure !== pressure) {
-            addEvent(state, keyId, false, false, pressure, x, y);
+            addEvent(state, keyId, JustUpdated, pressure, x, y);
         }
     }
 }
@@ -56,12 +56,12 @@ function updateGeolocationStatus(state: InputsState, accuracy: number | null) {
     
     if (!state.keysPressed.has(keyId)) {
         // First time, treat as "just pressed"
-        addEvent(state, keyId, true, false, pressure, -1, -1);
+        addEvent(state, keyId, JustPressed, pressure, -1, -1);
     } else {
         // Status updated, treat as a "move" event
         const event = state.keysPressed.get(keyId)!;
         if (event.pressure !== pressure) {
-            addEvent(state, keyId, false, false, pressure, -1, -1);
+            addEvent(state, keyId, JustUpdated, pressure, -1, -1);
         }
     }
 }
@@ -101,12 +101,12 @@ export function initInputGeolocation(state: InputsState, options: GeolocationOpt
         const changeKey = KeyGeolocationChange;
         if (state.keysPressed.has(changeKey)) {
             const event = state.keysPressed.get(changeKey)!;
-            addEvent(state, changeKey, false, true, 0, event.x, event.y);
+            addEvent(state, changeKey, JustReleased, 0, event.x, event.y);
         }
 
         const statusKey = KeyGeolocationAccuracy;
         if (state.keysPressed.has(statusKey)) {
-            addEvent(state, statusKey, false, true, 0, -1, -1);
+            addEvent(state, statusKey, JustReleased, 0, -1, -1);
         }
     };
 

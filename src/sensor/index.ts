@@ -1,5 +1,5 @@
 import type { InputEvent, InputsState } from '../common';
-import { addEvent, combineDestroyers } from '../common';
+import { addEvent, combineDestroyers, JustPressed, JustReleased, JustUpdated } from '../common';
 import { type KeyId } from '../keys';
 import { GEOLOCATION_BASE_ID } from '../geolocation/keys_consts';
 import {
@@ -39,14 +39,14 @@ function updateBipolarSensorState(state: InputsState, value: number | null, posK
     const wasPos = state.keysPressed.has(posKeyId);
     if (isPos && !wasPos) {
         const pressure = Math.max(0, Math.min(1, (value - deadzone) / (maxValue - deadzone)));
-        addEvent(state, posKeyId, true, false, pressure, -1, -1);
+        addEvent(state, posKeyId, JustPressed, pressure, -1, -1);
     } else if (!isPos && wasPos) {
-        addEvent(state, posKeyId, false, true, 0, -1, -1);
+        addEvent(state, posKeyId, JustReleased, 0, -1, -1);
     } else if (isPos) {
         const pressure = Math.max(0, Math.min(1, (value - deadzone) / (maxValue - deadzone)));
         const event = state.keysPressed.get(posKeyId)!;
         if (event.pressure !== pressure) {
-            addEvent(state, posKeyId, false, false, pressure, -1, -1);
+            addEvent(state, posKeyId, JustUpdated, pressure, -1, -1);
         }
     }
     
@@ -55,14 +55,14 @@ function updateBipolarSensorState(state: InputsState, value: number | null, posK
     const wasNeg = state.keysPressed.has(negKeyId);
     if (isNeg && !wasNeg) {
         const pressure = Math.max(0, Math.min(1, (Math.abs(value) - deadzone) / (maxValue - deadzone)));
-        addEvent(state, negKeyId, true, false, pressure, -1, -1);
+        addEvent(state, negKeyId, JustPressed, pressure, -1, -1);
     } else if (!isNeg && wasNeg) {
-        addEvent(state, negKeyId, false, true, 0, -1, -1);
+        addEvent(state, negKeyId, JustReleased, 0, -1, -1);
     } else if (isNeg) {
         const pressure = Math.max(0, Math.min(1, (Math.abs(value) - deadzone) / (maxValue - deadzone)));
         const event = state.keysPressed.get(negKeyId)!;
         if (event.pressure !== pressure) {
-            addEvent(state, negKeyId, false, false, pressure, -1, -1);
+            addEvent(state, negKeyId, JustUpdated, pressure, -1, -1);
         }
     }
 }
@@ -80,11 +80,11 @@ function updateUnipolarSensorState(state: InputsState, keyId: KeyId, value: numb
     const pressure = Math.max(0, Math.min(1, numValue / maxValue));
 
     if (!state.keysPressed.has(keyId)) {
-        addEvent(state, keyId, true, false, pressure, -1, -1);
+        addEvent(state, keyId, JustPressed, pressure, -1, -1);
     } else {
         const event = state.keysPressed.get(keyId)!;
         if (event.pressure !== pressure) {
-            addEvent(state, keyId, false, false, pressure, -1, -1);
+            addEvent(state, keyId, JustUpdated, pressure, -1, -1);
         }
     }
 }
@@ -102,11 +102,11 @@ function updateNormalizedSensorState(state: InputsState, keyId: KeyId, value: nu
     const pressure = Math.max(0, Math.min(1, (value - minValue) / (maxValue - minValue)));
 
     if (!state.keysPressed.has(keyId)) {
-        addEvent(state, keyId, true, false, pressure, -1, -1);
+        addEvent(state, keyId, JustPressed, pressure, -1, -1);
     } else {
         const event = state.keysPressed.get(keyId)!;
         if (event.pressure !== pressure) {
-            addEvent(state, keyId, false, false, pressure, -1, -1);
+            addEvent(state, keyId, JustUpdated, pressure, -1, -1);
         }
     }
 }

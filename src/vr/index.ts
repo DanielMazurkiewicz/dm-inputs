@@ -1,5 +1,5 @@
 import type { InputEvent, InputsState } from '../common';
-import { addEvent } from '../common';
+import { addEvent, JustPressed, JustReleased, JustUpdated } from '../common';
 import { type KeyId } from '../keys';
 import { JOYSTICK_BASE_ID } from '../joystick/keys_consts';
 import {
@@ -40,12 +40,12 @@ function updateVRState(state: InputsState, keyId: KeyId, value: number, normaliz
 
     if (!state.keysPressed.has(keyId)) {
         // First time seeing this, treat as "just pressed"
-        addEvent(state, keyId, true, false, pressure, -1, -1);
+        addEvent(state, keyId, JustPressed, pressure, -1, -1);
     } else {
         // Value updated, treat as a "move" event
         const event = state.keysPressed.get(keyId)!;
         if (event.pressure !== pressure) {
-            addEvent(state, keyId, false, false, pressure, -1, -1);
+            addEvent(state, keyId, JustUpdated, pressure, -1, -1);
         }
     }
 }
@@ -65,7 +65,7 @@ function releaseAllVRKeys(state: InputsState) {
     }
     for (const keyId of keysToRelease) {
         const event = state.keysPressed.get(keyId)!;
-        addEvent(state, keyId, false, true, 0, event.x, event.y);
+        addEvent(state, keyId, JustReleased, 0, event.x, event.y);
     }
 }
 
@@ -76,7 +76,7 @@ function releaseDeviceKeys(state: InputsState, deviceIndex: number, prevState: {
     for (let j = 0; j < 7; j++) { // pos x,y,z, rot x,y,z,w
          const keyId = (basePoseId + j) as KeyId;
          if(state.keysPressed.has(keyId)) {
-             addEvent(state, keyId, false, true, 0, -1, -1);
+             addEvent(state, keyId, JustReleased, 0, -1, -1);
          }
     }
 
@@ -85,7 +85,7 @@ function releaseDeviceKeys(state: InputsState, deviceIndex: number, prevState: {
         if (prevState.buttons[j].pressed) {
             const keyId = (VR_BASE_ID + (deviceIndex * VR_ID_RANGE) + VR_BUTTON_OFFSET + j) as KeyId;
             if (state.keysPressed.has(keyId)) {
-                addEvent(state, keyId, false, true, 0, -1, -1);
+                addEvent(state, keyId, JustReleased, 0, -1, -1);
             }
         }
     }
@@ -97,13 +97,13 @@ function releaseDeviceKeys(state: InputsState, deviceIndex: number, prevState: {
         if (prev > vrAxisDeadzone) {
             const posKeyId = baseAxisId as KeyId;
             if (state.keysPressed.has(posKeyId)) {
-                addEvent(state, posKeyId, false, true, 0, -1, -1);
+                addEvent(state, posKeyId, JustReleased, 0, -1, -1);
             }
         }
         if (prev < -vrAxisDeadzone) {
             const negKeyId = (baseAxisId + 1) as KeyId;
             if (state.keysPressed.has(negKeyId)) {
-                addEvent(state, negKeyId, false, true, 0, -1, -1);
+                addEvent(state, negKeyId, JustReleased, 0, -1, -1);
             }
         }
     }
@@ -217,13 +217,13 @@ export async function initInputVR(state: InputsState, options: VROptions = {}): 
                 const pressure = gamepad.buttons[j].value;
 
                 if (isPressed && !wasPressed) {
-                    addEvent(state, keyId, true, false, pressure, -1, -1);
+                    addEvent(state, keyId, JustPressed, pressure, -1, -1);
                 } else if (!isPressed && wasPressed) {
-                    addEvent(state, keyId, false, true, 0, -1, -1);
+                    addEvent(state, keyId, JustReleased, 0, -1, -1);
                 } else if (isPressed) {
                     const event = state.keysPressed.get(keyId);
                     if (event && event.pressure !== pressure) {
-                        addEvent(state, keyId, false, false, pressure, -1, -1);
+                        addEvent(state, keyId, JustUpdated, pressure, -1, -1);
                     }
                 }
             }
@@ -240,13 +240,13 @@ export async function initInputVR(state: InputsState, options: VROptions = {}): 
                 const posKeyId = baseAxisId as KeyId;
                 const pressurePos = Math.max(0, (current - vrAxisDeadzone) / (1 - vrAxisDeadzone));
                 if (isPos && !wasPos) {
-                    addEvent(state, posKeyId, true, false, pressurePos, -1, -1);
+                    addEvent(state, posKeyId, JustPressed, pressurePos, -1, -1);
                 } else if (!isPos && wasPos) {
-                    addEvent(state, posKeyId, false, true, 0, -1, -1);
+                    addEvent(state, posKeyId, JustReleased, 0, -1, -1);
                 } else if (isPos) {
                     const event = state.keysPressed.get(posKeyId);
                     if (event && event.pressure !== pressurePos) {
-                        addEvent(state, posKeyId, false, false, pressurePos, -1, -1);
+                        addEvent(state, posKeyId, JustUpdated, pressurePos, -1, -1);
                     }
                 }
             
@@ -256,13 +256,13 @@ export async function initInputVR(state: InputsState, options: VROptions = {}): 
                 const negKeyId = (baseAxisId + 1) as KeyId;
                 const pressureNeg = Math.max(0, (Math.abs(current) - vrAxisDeadzone) / (1 - vrAxisDeadzone));
                 if (isNeg && !wasNeg) {
-                    addEvent(state, negKeyId, true, false, pressureNeg, -1, -1);
+                    addEvent(state, negKeyId, JustPressed, pressureNeg, -1, -1);
                 } else if (!isNeg && wasNeg) {
-                    addEvent(state, negKeyId, false, true, 0, -1, -1);
+                    addEvent(state, negKeyId, JustReleased, 0, -1, -1);
                 } else if (isNeg) {
                     const event = state.keysPressed.get(negKeyId);
                     if (event && event.pressure !== pressureNeg) {
-                        addEvent(state, negKeyId, false, false, pressureNeg, -1, -1);
+                        addEvent(state, negKeyId, JustUpdated, pressureNeg, -1, -1);
                     }
                 }
             }

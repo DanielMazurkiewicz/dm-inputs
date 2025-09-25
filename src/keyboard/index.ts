@@ -1,5 +1,5 @@
 import type { InputEvent, InputsState } from '../common';
-import { addEvent } from '../common';
+import { addEvent, JustPressed, JustReleased } from '../common';
 import { type KeyId } from '../keys';
 import { KeyMouseLeft } from '../mouse/keys';
 import { KeyArrowDown, KeyArrowLeft, KeyS, KeySpace, KeyTab } from './keys';
@@ -36,7 +36,7 @@ export function initInputKeyboard(element: HTMLElement, state: InputsState, opti
             char = e.key;
         }
 
-        addEvent(state, keyId, true, false, 1, mouseX, mouseY, char);
+        addEvent(state, keyId, JustPressed, 1, mouseX, mouseY, char);
         
         if (preventDefaults) {
             // Prevent scrolling with arrow keys, space, etc.
@@ -55,7 +55,7 @@ export function initInputKeyboard(element: HTMLElement, state: InputsState, opti
         if (keyId === undefined || !state.keysPressed.has(keyId)) {
             return;
         }
-        addEvent(state, keyId, false, true, 0, mouseX, mouseY);
+        addEvent(state, keyId, JustReleased, 0, mouseX, mouseY);
     };
 
     const handleBlur = () => {
@@ -66,7 +66,7 @@ export function initInputKeyboard(element: HTMLElement, state: InputsState, opti
             }
         }
         for (const keyId of keysToRelease) {
-            addEvent(state, keyId, false, true, 0, -1, -1);
+            addEvent(state, keyId, JustReleased, 0, -1, -1);
         }
     };
     

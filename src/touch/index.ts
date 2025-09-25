@@ -1,5 +1,5 @@
 import type { InputEvent, InputsState } from '../common';
-import { addEvent } from '../common';
+import { addEvent, JustPressed, JustReleased, JustUpdated } from '../common';
 import { type KeyId } from '../keys';
 import { SENSOR_BASE_ID } from '../sensor/keys';
 import { KeyTouch0, KeyTouchMove0 } from './keys';
@@ -38,7 +38,7 @@ export function initInputTouch(element: HTMLElement, state: InputsState, options
             // NORMALIZED: Use touch.force for pressure if available, otherwise default to 1.0.
             const pressure = (touch.force > 0) ? touch.force : 1.0;
             
-            addEvent(state, keyId, true, false, pressure, touchX, touchY);
+            addEvent(state, keyId, JustPressed, pressure, touchX, touchY);
         }
     };
 
@@ -54,12 +54,12 @@ export function initInputTouch(element: HTMLElement, state: InputsState, options
             const keyId = (KeyTouch0 + touchIndex) as KeyId;
             const moveKeyId = (KeyTouchMove0 + touchIndex) as KeyId;
 
-            addEvent(state, keyId, false, true, 0, touchX, touchY);
+            addEvent(state, keyId, JustReleased, 0, touchX, touchY);
 
             const moveEvent = state.keysPressed.get(moveKeyId);
             if (moveEvent) {
                 // Use the coordinates from the last known move event for the release event.
-                addEvent(state, moveKeyId, false, true, 0, moveEvent.x, moveEvent.y);
+                addEvent(state, moveKeyId, JustReleased, 0, moveEvent.x, moveEvent.y);
             }
             
             touchLastMoveTime.delete(touchIndex);
@@ -80,7 +80,7 @@ export function initInputTouch(element: HTMLElement, state: InputsState, options
         if (lastMoveTime && state.keysPressed.has(moveKeyId)) {
             if (performance.now() - lastMoveTime >= touchMoveStopTimeout) {
                 const moveEvent = state.keysPressed.get(moveKeyId)!;
-                addEvent(state, moveKeyId, false, true, 0, moveEvent.x, moveEvent.y);
+                addEvent(state, moveKeyId, JustReleased, 0, moveEvent.x, moveEvent.y);
                 touchLastMoveTime.delete(touchIndex);
                 touchStopCheckRequestIds.delete(touchIndex);
             } else {
@@ -106,14 +106,14 @@ export function initInputTouch(element: HTMLElement, state: InputsState, options
             const keyId = (KeyTouch0 + touchIndex) as KeyId;
 
             // Add a "move" event for the base touch key to update its position and pressure.
-            addEvent(state, keyId, false, false, pressure, touchX, touchY);
+            addEvent(state, keyId, JustUpdated, pressure, touchX, touchY);
 
             if (!state.keysPressed.has(moveKeyId)) {
                 // First move event for this touch, treat as "just pressed" for the move key.
-                addEvent(state, moveKeyId, true, false, pressure, touchX, touchY);
+                addEvent(state, moveKeyId, JustPressed, pressure, touchX, touchY);
             } else {
                 // Subsequent move event.
-                addEvent(state, moveKeyId, false, false, pressure, touchX, touchY);
+                addEvent(state, moveKeyId, JustUpdated, pressure, touchX, touchY);
             }
 
             touchLastMoveTime.set(touchIndex, performance.now());
@@ -132,7 +132,7 @@ export function initInputTouch(element: HTMLElement, state: InputsState, options
             }
         }
         for (const keyId of keysToRelease) {
-            addEvent(state, keyId, false, true, 0, -1, -1);
+            addEvent(state, keyId, JustReleased, 0, -1, -1);
         }
 
         for(const id of touchStopCheckRequestIds.values()) { cancelAnimationFrame(id); }

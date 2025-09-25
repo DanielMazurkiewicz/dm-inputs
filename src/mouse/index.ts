@@ -1,5 +1,5 @@
 import type { InputEvent, InputsState } from '../common';
-import { addEvent } from '../common';
+import { addEvent, JustPressed, JustReleased, JustUpdated } from '../common';
 import { type KeyId } from '../keys';
 import { KeyTouch0 } from '../touch/keys';
 import { KeyMouseLeft, KeyMouseMiddle, KeyMouseMove, KeyMouseRight, KeyMouseWheelDown, KeyMouseWheelUp } from './keys';
@@ -25,19 +25,19 @@ export function initInputMouse(element: HTMLElement, state: InputsState, options
         const keyId = MOUSE_BUTTON_MAP[e.button];
         if (!keyId || state.keysPressed.has(keyId)) return;
         updateCoords(e);
-        addEvent(state, keyId, true, false, 1, mouseX, mouseY);
+        addEvent(state, keyId, JustPressed, 1, mouseX, mouseY);
     };
     const handleMouseUp = (e: MouseEvent) => {
         const keyId = MOUSE_BUTTON_MAP[e.button];
         if (!keyId || !state.keysPressed.has(keyId)) return;
         updateCoords(e);
-        addEvent(state, keyId, false, true, 0, mouseX, mouseY);
+        addEvent(state, keyId, JustReleased, 0, mouseX, mouseY);
     };
 
     const checkMouseMoveStop = () => {
         if (lastMouseMoveTime > 0 && state.keysPressed.has(KeyMouseMove)) {
             if (performance.now() - lastMouseMoveTime >= mouseMoveStopTimeout) {
-                addEvent(state, KeyMouseMove, false, true, 0, mouseX, mouseY);
+                addEvent(state, KeyMouseMove, JustReleased, 0, mouseX, mouseY);
                 lastMouseMoveTime = 0; // Stop checking
                 stopCheckRequestId = null;
             } else {
@@ -52,9 +52,9 @@ export function initInputMouse(element: HTMLElement, state: InputsState, options
     const handleMouseMove = (e: MouseEvent) => {
         updateCoords(e);
         if (!state.keysPressed.has(KeyMouseMove)) {
-            addEvent(state, KeyMouseMove, true, false, 1, mouseX, mouseY);
+            addEvent(state, KeyMouseMove, JustPressed, 1, mouseX, mouseY);
         } else {
-            addEvent(state, KeyMouseMove, false, false, 1, mouseX, mouseY);
+            addEvent(state, KeyMouseMove, JustUpdated, 1, mouseX, mouseY);
         }
         lastMouseMoveTime = performance.now();
         // If a check isn't already scheduled, start one.
@@ -65,7 +65,7 @@ export function initInputMouse(element: HTMLElement, state: InputsState, options
     const handleWheel = (e: WheelEvent) => {
         const keyId = e.deltaY < 0 ? KeyMouseWheelUp : KeyMouseWheelDown;
         updateCoords(e);
-        addEvent(state, keyId, true, false, 1, mouseX, mouseY); addEvent(state, keyId, false, true, 0, mouseX, mouseY);
+        addEvent(state, keyId, JustPressed, 1, mouseX, mouseY); addEvent(state, keyId, JustReleased, 0, mouseX, mouseY);
         if (preventDefaults) e.preventDefault();
     };
     const handleContextMenu = (e: Event) => preventDefaults && e.preventDefault();
@@ -78,7 +78,7 @@ export function initInputMouse(element: HTMLElement, state: InputsState, options
             }
         }
         for (const keyId of keysToRelease) {
-            addEvent(state, keyId, false, true, 0, -1, -1);
+            addEvent(state, keyId, JustReleased, 0, -1, -1);
         }
     };
 
