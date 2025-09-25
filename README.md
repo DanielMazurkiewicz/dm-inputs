@@ -39,7 +39,8 @@ import {
     wasCombinationJustPressed,
     KeyW,
     KeyMouseLeft,
-    KeyCtrl
+    KeyCtrl,
+    JustPressed
 } from './src/index';
 
 // --- 1. Setup ---
@@ -56,7 +57,7 @@ function gameLoop() {
     // --- A: Process discrete events that happened since the last frame ---
     let event;
     while (event = pendingInputsConsume(state)) {
-        if (event.isJustPressed && event.keyId === KeyMouseLeft) {
+        if (event.state = JustPressed && event.keyId === KeyMouseLeft) {
             console.log(`Mouse clicked at (${event.x}, ${event.y})`);
         }
     }
@@ -107,7 +108,7 @@ A `KeyId` is a unique number that identifies a specific input, regardless of the
 ### `InputEvent`
 Every interaction generates an `InputEvent`. This object contains all the information about the event:
 -   `keyId`: The `KeyId` of the input.
--   `isJustPressed` / `isJustReleased`: Booleans indicating a state change.
+-   `state`: Property indicating a state change (JustPressed, JustReleased, JustUpdated).
 -   `pressure`: A normalized value (0-1) representing button pressure, trigger pull, touch force, or sensor reading.
 -   `x`, `y`: Coordinates relative to the target element.
 -   `char`: The typed character for keyboard events, if applicable.
@@ -158,7 +159,7 @@ Useful for logging, debugging, or complex event processing.
 ```typescript
 let event;
 while (event = pendingInputsConsume(state)) {
-    console.log(`Event for KeyId ${event.keyId}, Pressed: ${event.isJustPressed}`);
+    console.log(`Event for KeyId ${event.keyId}, Pressed: ${event.state === JustPressed}`);
     // Handle the event...
 }
 ```
